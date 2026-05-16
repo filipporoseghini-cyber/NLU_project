@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model checkpoints (large binary files — do NOT commit to git)
+# The bin/ directories are tracked via .gitkeep files
+LM/A/bin/*.pt
+LM/B/bin/*.pt
+NLU/A/bin/*.pt
+NLU/B/bin/*.pt
+
+# Results CSVs (optional — comment out if you want to track them)
+# results_*.csv
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
