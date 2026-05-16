@@ -1,0 +1,5 @@
+experiment,step,lr,d_model,n_heads,num_layers,ff_dim,dropout,weight_tying,batch_size,n_params,best_dev_ppl,test_ppl,test_loss
+step0_lr0.1,0,0.1,20,1,1,20,0.0,False,32,2033400,61.3691,54.1061,3.9909
+step0_lr0.01,0,0.01,20,1,1,20,0.0,False,32,2033400,46.0423,40.7702,3.708
+step0_lr0.001,0,0.001,20,1,1,20,0.0,False,32,2033400,47.0184,40.7254,3.7069
+step0_lr0.0001,0,0.0001,20,1,1,20,0.0,False,32,2033400,64.4073,55.878,4.0232
