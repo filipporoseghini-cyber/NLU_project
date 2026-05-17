@@ -147,31 +147,31 @@ experiments = [
         "lr": 0.1,
         "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
         "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 50, "patience": 3
+        "batch_size": 32, "n_epochs": 100, "patience": 3
     },
     {
         "name": "step0_lr0.01",
         "step": 0,
-        "lr": 0.01,
+        "lr": 0.015,
         "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
         "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 50, "patience": 3
+        "batch_size": 32, "n_epochs": 100, "patience": 3
     },
     {
         "name": "step0_lr0.001",
         "step": 0,
-        "lr": 0.001,
+        "lr": 0.01,
         "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
         "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 50, "patience": 3
+        "batch_size": 32, "n_epochs": 100, "patience": 3
     },
     {
         "name": "step0_lr0.0001",
         "step": 0,
-        "lr": 0.0001,
+        "lr": 0.001,
         "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
         "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 50, "patience": 3
+        "batch_size": 32, "n_epochs": 100, "patience": 3
     },
 
     # -----------------------------------------------------------------------
