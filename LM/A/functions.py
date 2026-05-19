@@ -44,6 +44,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 # ===========================================================================
@@ -70,7 +71,7 @@ def init_weights(model):
         if isinstance(module, nn.Linear):
             nn.init.uniform_(module.weight, -0.01, 0.01)
             if module.bias is not None:
-                nn.init.zeros_(module.bias)
+                module.bias.data.fill_(0.01)
 
 
 # ===========================================================================
@@ -105,7 +106,7 @@ def train_loop(data, optimizer, criterion, model, clip=5.0):
     loss_array = []          # perdita per ogni batch
     number_of_tokens = []   # token non-padding per ogni batch
 
-    for input_ids, labels, n_tokens in data:
+    for input_ids, labels, n_tokens in tqdm(data, desc="  train", leave=False):
         # -----------------------------------------------
         # FORWARD PASS
         # -----------------------------------------------
@@ -252,7 +253,8 @@ def train_model(model, train_loader, dev_loader, optimizer,
         'dev_loss': []
     }
 
-    for epoch in range(1, n_epochs + 1):
+    epoch_bar = tqdm(range(1, n_epochs + 1), desc=f"[{experiment_name}]", unit="ep")
+    for epoch in epoch_bar:
         # -----------------------------------------------
         # TRAINING
         # -----------------------------------------------
@@ -268,10 +270,7 @@ def train_model(model, train_loader, dev_loader, optimizer,
         history['dev_ppl'].append(dev_ppl)
         history['dev_loss'].append(dev_loss)
 
-        print(f"[{experiment_name}] Epoch {epoch:3d} | "
-              f"Train Loss: {train_loss:.4f} | "
-              f"Dev PPL: {dev_ppl:.2f} | "
-              f"Dev Loss: {dev_loss:.4f}")
+        epoch_bar.set_postfix(loss=f"{train_loss:.4f}", dev_ppl=f"{dev_ppl:.2f}")
 
         # -----------------------------------------------
         # EARLY STOPPING
