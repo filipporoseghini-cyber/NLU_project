@@ -20,7 +20,7 @@ L'ottimizzazione degli iperparametri segue un approccio a STEP PROGRESSIVI
   STEP 1 — Architettura:
     Con il lr migliore, proviamo diverse combinazioni di:
     1.1 d_model: 64, 128, 256   (dimensione degli embedding)
-    1.2 n_heads: 4              (con il miglior d_model)
+    1.2 n_heads: 2, 4, 8        (con il miglior d_model)
     1.3 num_layers: 2, 4        (profondità del modello)
     1.4 ff_dim: 512, 1024       (dimensione della FFN)
 
@@ -135,162 +135,259 @@ print(f"[Setup] Train: {len(train_raw)} frasi | "
 experiments = [
 
     # -----------------------------------------------------------------------
-    # STEP 0: RICERCA DEL LEARNING RATE
+    # STEP 0: RICERCA DEL LEARNING RATE — COMPLETATO
     # Modello molto piccolo per velocità: d_model=20, n_heads=1, layers=1
-    # Proviamo lr: 0.1, 0.01, 0.001, 0.0001
+    # Griglia: {0.1, 0.05, 0.01, 0.005, 0.001, 0.0001}
+    # Motivazione: risultati preliminari (n_epochs sbagliato) mostravano
+    #   0.01 → Dev PPL 46.04 (best), 0.001 → 47.02, 0.1 → 61.37, 0.0001 → 64.41
+    # → aggiunti 0.05 e 0.005 per esplorare meglio la zona [0.001, 0.1]
+    #
+    # RISULTATI (Dev PPL → Test PPL):
+    #   lr=0.1    → Dev 81.51 → Test 72.38
+    #   lr=0.05   → Dev 67.41 → Test 60.17
+    #   lr=0.01   → Dev 50.37 → Test 44.83
+    #   lr=0.005  → Dev 48.33 → Test 42.49
+    #   lr=0.001  → Dev 46.07 → Test 40.46  ← BEST
+    #   lr=0.0001 → Dev 50.07 → Test 43.35
+    # Conclusione: lr=0.001 è il punto ottimale; valori più alti causano
+    # oscillazioni, valori più bassi convergono troppo lentamente.
+    # → Best LR: 0.001
     # -----------------------------------------------------------------------
-    # Con AdamW, lr=0.1 è quasi sempre troppo grande per i Transformer
-    # → ci aspettiamo che diverga o oscilli. lr=1e-3 o 1e-4 sono tipicamente i migliori.
-    {
-        "name": "step0_lr0.1",
-        "step": 0,
-        "lr": 0.1,
-        "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 3
-    },
-    {
-        "name": "step0_lr0.01",
-        "step": 0,
-        "lr": 0.015,
-        "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 3
-    },
-    {
-        "name": "step0_lr0.001",
-        "step": 0,
-        "lr": 0.01,
-        "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 3
-    },
-    {
-        "name": "step0_lr0.0001",
-        "step": 0,
-        "lr": 0.001,
-        "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 3
-    },
+    # {
+    #     "name": "step0_lr0.1",
+    #     "step": 0,
+    #     "lr": 0.1,
+    #     "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 3
+    # },
+    # {
+    #     "name": "step0_lr0.05",
+    #     "step": 0,
+    #     "lr": 0.05,
+    #     "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 3
+    # },
+    # {
+    #     "name": "step0_lr0.01",
+    #     "step": 0,
+    #     "lr": 0.01,
+    #     "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 3
+    # },
+    # {
+    #     "name": "step0_lr0.005",
+    #     "step": 0,
+    #     "lr": 0.005,
+    #     "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 3
+    # },
+    # {
+    #     "name": "step0_lr0.001",
+    #     "step": 0,
+    #     "lr": 0.001,
+    #     "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 3
+    # },
+    # {
+    #     "name": "step0_lr0.0001",
+    #     "step": 0,
+    #     "lr": 0.0001,
+    #     "d_model": 20, "n_heads": 1, "num_layers": 1, "ff_dim": 20,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 3
+    # },
 
     # -----------------------------------------------------------------------
-    # STEP 1.1: d_model (con il lr migliore dallo step 0)
-    # MODIFICA: inserire qui il lr migliore trovato nello step 0
+    # STEP 1.1: d_model (con il lr migliore dallo step 0) — COMPLETATO
+    # lr=0.001 confermato da step 0; ff_dim=d_model (nessuna espansione FFN)
+    #
+    # RISULTATI (Dev PPL → Test PPL):
+    #   d_model=64  → Dev 39.69 → Test 35.30
+    #   d_model=128 → Dev 39.64 → Test 35.30
+    #   d_model=256 → Dev 39.17 → Test 35.03  ← BEST
+    # Conclusione: d_model=256 dà il miglior risultato. Il guadagno rispetto
+    # a 128 è marginale ma consistente; vale la pena usare 256 dato che il
+    # costo computazionale rimane gestibile.
+    # → Best d_model: 256
     # -----------------------------------------------------------------------
-    {
-        "name": "step1_dmodel64",
-        "step": "1.1",
-        "lr": 0.001,      # <-- aggiornare con il best lr dallo step 0
-        "d_model": 64, "n_heads": 1, "num_layers": 1, "ff_dim": 64,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
-    {
-        "name": "step1_dmodel128",
-        "step": "1.1",
-        "lr": 0.001,
-        "d_model": 128, "n_heads": 1, "num_layers": 1, "ff_dim": 128,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
-    {
-        "name": "step1_dmodel256",
-        "step": "1.1",
-        "lr": 0.001,
-        "d_model": 256, "n_heads": 1, "num_layers": 1, "ff_dim": 256,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
+    # {
+    #     "name": "step1_dmodel64",
+    #     "step": "1.1",
+    #     "lr": 0.001,      # <-- aggiornare con il best lr dallo step 0
+    #     "d_model": 64, "n_heads": 1, "num_layers": 1, "ff_dim": 64,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
+    # {
+    #     "name": "step1_dmodel128",
+    #     "step": "1.1",
+    #     "lr": 0.001,
+    #     "d_model": 128, "n_heads": 1, "num_layers": 1, "ff_dim": 128,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
+    # {
+    #     "name": "step1_dmodel256",
+    #     "step": "1.1",
+    #     "lr": 0.001,
+    #     "d_model": 256, "n_heads": 1, "num_layers": 1, "ff_dim": 256,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
 
     # -----------------------------------------------------------------------
     # STEP 1.2: n_heads (con il miglior d_model; deve essere divisore di d_model)
-    # MODIFICA: aggiornare d_model con il best dallo step 1.1
+    # lr=0.001 (best step 0), d_model=256 (best step 1.1) → già aggiornati.
+    # Baseline di riferimento: step1_dmodel256 con n_heads=1 → Dev 39.17
+    # Testiamo 3 valori divisori di 256:
+    #   n_heads=2 → head_dim=128
+    #   n_heads=4 → head_dim=64  (dimensione standard)
+    #   n_heads=8 → head_dim=32
+    #
+    # RISULTATI (Dev PPL → Test PPL):
+    #   n_heads=2 → Dev 37.67 → Test 33.79
+    #   n_heads=4 → Dev 37.34 → Test 33.94  ← BEST (Dev PPL)
+    #   n_heads=8 → Dev 37.75 → Test 34.23
+    # Conclusione: n_heads=4 ottiene la miglior Dev PPL (37.34). La differenza
+    # è piccola ma consistente; head_dim=64 è la dimensione standard di GPT-2.
+    # → Best n_heads: 4
     # -----------------------------------------------------------------------
-    {
-        "name": "step1_nheads4",
-        "step": "1.2",
-        "lr": 0.001,
-        "d_model": 256,  # <-- aggiornare con il best d_model
-        "n_heads": 4,
-        "num_layers": 1, "ff_dim": 256,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
+    # {
+    #     "name": "step1_nheads2",
+    #     "step": "1.2",
+    #     "lr": 0.001,       # confermato best da step 0
+    #     "d_model": 256,    # confermato best da step 1.1
+    #     "n_heads": 2,
+    #     "num_layers": 1, "ff_dim": 256,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
+    # {
+    #     "name": "step1_nheads4",
+    #     "step": "1.2",
+    #     "lr": 0.001,
+    #     "d_model": 256,
+    #     "n_heads": 4,
+    #     "num_layers": 1, "ff_dim": 256,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
+    # {
+    #     "name": "step1_nheads8",
+    #     "step": "1.2",
+    #     "lr": 0.001,
+    #     "d_model": 256,
+    #     "n_heads": 8,
+    #     "num_layers": 1, "ff_dim": 256,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
 
     # -----------------------------------------------------------------------
-    # STEP 1.3: num_layers (con il miglior d_model e n_heads)
+    # STEP 1.3: num_layers — COMPLETATO
+    # lr=0.001, d_model=256, n_heads=4 confermati dai passi precedenti.
+    #
+    # RISULTATI (Dev PPL → Test PPL):
+    #   num_layers=2 → Dev 36.61 → Test 33.18
+    #   num_layers=4 → Dev 36.06 → Test 32.73  ← BEST
+    # → Best num_layers: 4
     # -----------------------------------------------------------------------
-    {
-        "name": "step1_layers2",
-        "step": "1.3",
-        "lr": 0.001,
-        "d_model": 256, "n_heads": 4, "num_layers": 2, "ff_dim": 256,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
-    {
-        "name": "step1_layers4",
-        "step": "1.3",
-        "lr": 0.001,
-        "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 256,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
+    # {
+    #     "name": "step1_layers2",
+    #     "step": "1.3",
+    #     "lr": 0.001,
+    #     "d_model": 256, "n_heads": 4, "num_layers": 2, "ff_dim": 256,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
+    # {
+    #     "name": "step1_layers4",
+    #     "step": "1.3",
+    #     "lr": 0.001,
+    #     "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 256,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
 
     # -----------------------------------------------------------------------
-    # STEP 1.4: ff_dim (con la migliore architettura finora)
+    # STEP 1.4: ff_dim — COMPLETATO
+    # lr=0.001, d_model=256, n_heads=4, num_layers=4 confermati.
+    # ff_dim=512 = 2*d_model, ff_dim=1024 = 4*d_model (standard GPT-2).
+    #
+    # RISULTATI (Dev PPL → Test PPL):
+    #   ff_dim=512  → Dev 35.66 → Test 32.33
+    #   ff_dim=1024 → Dev 34.51 → Test 31.26  ← BEST
+    # → Best ff_dim: 1024
     # -----------------------------------------------------------------------
-    {
-        "name": "step1_ffdim512",
-        "step": "1.4",
-        "lr": 0.001,
-        "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 512,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
-    {
-        "name": "step1_ffdim1024",
-        "step": "1.4",
-        "lr": 0.001,
-        "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 1024,
-        "dropout": 0.0, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
+    # {
+    #     "name": "step1_ffdim512",
+    #     "step": "1.4",
+    #     "lr": 0.001,
+    #     "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 512,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
+    # {
+    #     "name": "step1_ffdim1024",
+    #     "step": "1.4",
+    #     "lr": 0.001,
+    #     "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 1024,
+    #     "dropout": 0.0, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
 
     # -----------------------------------------------------------------------
-    # STEP 2: DROPOUT (con la migliore architettura dallo step 1)
-    # MODIFICA: aggiornare i valori con i best da step 1
+    # STEP 2: DROPOUT — PARZIALMENTE COMPLETATO
+    # lr=0.001, d_model=256, n_heads=4, num_layers=4, ff_dim=1024 confermati.
+    #
+    # RISULTATI (Dev PPL → Test PPL):
+    #   dropout=0.1 → Dev 33.49 → Test 30.01
+    #   dropout=0.2 → Dev 32.47 → Test 29.34  ← BEST finora
+    #   dropout=0.3 → da eseguire (trend ancora in discesa, vale la pena)
     # -----------------------------------------------------------------------
+    # {
+    #     "name": "step2_dropout0.1",
+    #     "step": 2,
+    #     "lr": 0.001,
+    #     "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 1024,
+    #     "dropout": 0.1, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
+    # {
+    #     "name": "step2_dropout0.2",
+    #     "step": 2,
+    #     "lr": 0.001,
+    #     "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 1024,
+    #     "dropout": 0.2, "weight_tying": False,
+    #     "batch_size": 8, "n_epochs": 100, "patience": 5
+    # },
     {
-        "name": "step2_dropout0.1",
+        "name": "step2_dropout0.3",
         "step": 2,
         "lr": 0.001,
         "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 1024,
-        "dropout": 0.1, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
-    },
-    {
-        "name": "step2_dropout0.2",
-        "step": 2,
-        "lr": 0.001,
-        "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 1024,
-        "dropout": 0.2, "weight_tying": False,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
+        "dropout": 0.3, "weight_tying": False,
+        "batch_size": 8, "n_epochs": 100, "patience": 5
     },
 
     # -----------------------------------------------------------------------
     # STEP 3: WEIGHT TYING (con la migliore configurazione dallo step 2)
-    # MODIFICA: aggiornare dropout con il best da step 2
+    # dropout=0.3 usato per scommettere sul trend ancora in discesa (0.1→0.2→0.3).
+    # Se step2_dropout0.3 risultasse peggiore di 0.2, rieseguire con dropout=0.2.
     # -----------------------------------------------------------------------
     {
         "name": "step3_weight_tying",
         "step": 3,
         "lr": 0.001,
         "d_model": 256, "n_heads": 4, "num_layers": 4, "ff_dim": 1024,
-        "dropout": 0.1,  # <-- best da step 2
+        "dropout": 0.3,
         "weight_tying": True,
-        "batch_size": 32, "n_epochs": 100, "patience": 5
+        "batch_size": 8, "n_epochs": 100, "patience": 5
     },
 ]
 
