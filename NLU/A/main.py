@@ -185,29 +185,34 @@ if __name__ == '__main__':
     print("STEP 0 — Ricerca del Learning Rate")
     print("="*70)
 
-    for cfg in step0_configs:
-        res = run_experiments(
-            train_loader, dev_loader, test_loader,
-            lang, vocab_len, slots_len, n_intents,
-            lr=cfg["lr"],
-            d_model=base_d_model,
-            n_heads=base_n_heads,
-            num_layers=base_num_layers,
-            ff_dim=base_ff_dim,
-            dropout=base_dropout,
-            n_runs=5,
-            n_epochs=200,
-            patience=3,
-            experiment_name=cfg["name"],
-            device=device
-        )
-        save_results_to_csv(res)
-        all_results.append(res)
+    # for cfg in step0_configs:
+    #     res = run_experiments(
+    #         train_loader, dev_loader, test_loader,
+    #         lang, vocab_len, slots_len, n_intents,
+    #         lr=cfg["lr"],
+    #         d_model=base_d_model,
+    #         n_heads=base_n_heads,
+    #         num_layers=base_num_layers,
+    #         ff_dim=base_ff_dim,
+    #         dropout=base_dropout,
+    #         n_runs=5,
+    #         n_epochs=200,
+    #         patience=3,
+    #         experiment_name=cfg["name"],
+    #         device=device
+    #     )
+    #     save_results_to_csv(res)
+    #     all_results.append(res)
 
-    # Identifica il miglior lr dallo step 0
-    best_step0 = max(all_results, key=lambda x: x['slot_f1_mean'])
-    best_lr = best_step0['lr']
-    print(f"\nMiglior lr da Step 0: {best_lr} "
+    # Risultati Step 0 già ottenuti — miglior lr: 0.01 (Slot F1=0.880)
+    best_lr = 0.01
+    best_step0 = {
+        'experiment': 'step0_lr0.01', 'lr': 0.01,
+        'd_model': 64, 'n_heads': 2, 'num_layers': 2, 'ff_dim': 256, 'dropout': 0.0,
+        'slot_f1_mean': 0.8798, 'slot_f1_std': 0.0124,
+        'intent_acc_mean': 0.929, 'intent_acc_std': 0.0118,
+    }
+    print(f"\nMiglior lr da Step 0 (già eseguito): {best_lr} "
           f"(Slot F1={best_step0['slot_f1_mean']:.3f})")
 
     # =========================================================================
@@ -229,7 +234,7 @@ if __name__ == '__main__':
     step1_results = []
 
     # --- 1a. d_model ---
-    for d_model in [128, 256]:
+    for d_model in [256]:  # 128 già eseguito (Slot F1=0.803)
         # Con d_model=128, n_heads=2 → d_k=64 (ragionevole)
         # Con d_model=256, n_heads=2 → d_k=128 (un po' grande per teste solo 2)
         # Potremmo dover aumentare n_heads per d_model=256
