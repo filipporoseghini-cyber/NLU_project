@@ -120,10 +120,16 @@ def train_loop(data, optimizer, criterion_slots, criterion_intents, model):
     model.train()
     loss_array = []
 
+    # Inferisce il device dal modello così non serve passarlo come argomento
+    device = next(model.parameters()).device
+
     pbar = tqdm(data, desc="  train", leave=False)
 
     for batch in pbar:
         optimizer.zero_grad()
+
+        # Sposta il batch sul device del modello (CPU, MPS o CUDA)
+        batch = {k: v.to(device) for k, v in batch.items()}
 
         # Forward pass: restituisce logit per slot e intent
         # slots:  (B, L, slots_size)
@@ -202,6 +208,8 @@ def eval_loop(data, criterion_slots, criterion_intents, model, lang):
     model.eval()
     loss_array = []
 
+    device = next(model.parameters()).device
+
     ref_intents = []  # ground truth intent (stringhe)
     hyp_intents = []  # predizioni intent (stringhe)
 
@@ -210,6 +218,9 @@ def eval_loop(data, criterion_slots, criterion_intents, model, lang):
 
     with torch.no_grad():
         for batch in tqdm(data, desc="  eval", leave=False):
+
+            # Sposta il batch sul device del modello
+            batch = {k: v.to(device) for k, v in batch.items()}
 
             # Forward pass
             slots, intent = model(batch['utterances'], batch['slots_len'])
