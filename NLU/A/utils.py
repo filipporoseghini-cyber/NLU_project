@@ -436,7 +436,7 @@ def collate_fn(data):
 
 
 def get_dataloaders(train_dataset, dev_dataset, test_dataset,
-                    batch_size_train=128, batch_size_eval=64):
+                    batch_size_train=128, batch_size_eval=64, device='cpu'):
     """
     Crea i tre DataLoader per train, dev e test.
 
@@ -450,24 +450,29 @@ def get_dataloaders(train_dataset, dev_dataset, test_dataset,
         test_dataset     : istanza di IntentsAndSlots per il test
         batch_size_train : batch size per il training
         batch_size_eval  : batch size per dev/test
+        device           : device su cui spostare i tensori ('cpu', 'cuda', 'mps')
 
     Returns:
         train_loader, dev_loader, test_loader
     """
+    def collate_fn_device(data):
+        batch = collate_fn(data)
+        return {k: v.to(device) for k, v in batch.items()}
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size_train,
-        collate_fn=collate_fn,
+        collate_fn=collate_fn_device,
         shuffle=True   # shuffle solo per il training
     )
     dev_loader = DataLoader(
         dev_dataset,
         batch_size=batch_size_eval,
-        collate_fn=collate_fn
+        collate_fn=collate_fn_device
     )
     test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size_eval,
-        collate_fn=collate_fn
+        collate_fn=collate_fn_device
     )
     return train_loader, dev_loader, test_loader

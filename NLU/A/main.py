@@ -120,7 +120,8 @@ def setup_data(device):
     train_loader, dev_loader, test_loader = get_dataloaders(
         train_dataset, dev_dataset, test_dataset,
         batch_size_train=128,
-        batch_size_eval=64
+        batch_size_eval=64,
+        device=device
     )
 
     # Dimensioni per la costruzione del modello
