@@ -144,116 +144,100 @@ experiments = [
     #   lr = 1e-3  → tendenzialmente troppo alto (instabilità)
     #   lr = 5e-4  → possibile
     #   lr = 1e-4  → valore di riferimento nella letteratura LoRA
-    #   lr = 5e-5  → conservativo, convergenza lenta
     #
-    # RISULTATI (da compilare dopo l'esecuzione):
-    #   lr=1e-3  → Dev PPL: ___  Test PPL: ___
-    #   lr=5e-4  → Dev PPL: ___  Test PPL: ___
-    #   lr=1e-4  → Dev PPL: ___  Test PPL: ___
-    #   lr=5e-5  → Dev PPL: ___  Test PPL: ___
-    # → Best LR: ___
+    # RISULTATI:
+    #   lr=1e-3  → vedere results_1B.csv
+    #   lr=5e-4  → vedere results_1B.csv
+    #   lr=1e-4  → vedere results_1B.csv
+    # → Best LR: 5e-4
     # -----------------------------------------------------------------------
-    {
-        "name": "step0_lr1e-3",
-        "step": 0,
-        "rank": 4, "alpha": 8,
-        "lr": 1e-3,
-        "batch_size": 8, "n_epochs": 20, "patience": 3
-    },
-    {
-        "name": "step0_lr5e-4",
-        "step": 0,
-        "rank": 4, "alpha": 8,
-        "lr": 5e-4,
-        "batch_size": 8, "n_epochs": 20, "patience": 3
-    },
-    {
-        "name": "step0_lr1e-4",
-        "step": 0,
-        "rank": 4, "alpha": 8,
-        "lr": 1e-4,
-        "batch_size": 8, "n_epochs": 20, "patience": 3
-    },
-    {
-        "name": "step0_lr5e-5",
-        "step": 0,
-        "rank": 4, "alpha": 8,
-        "lr": 5e-5,
-        "batch_size": 8, "n_epochs": 20, "patience": 3
-    },
+    # {
+    #     "name": "step0_lr1e-3",
+    #     "step": 0,
+    #     "rank": 4, "alpha": 8,
+    #     "lr": 1e-3,
+    #     "batch_size": 8, "n_epochs": 20, "patience": 3
+    # },
+    # {
+    #     "name": "step0_lr5e-4",
+    #     "step": 0,
+    #     "rank": 4, "alpha": 8,
+    #     "lr": 5e-4,
+    #     "batch_size": 8, "n_epochs": 20, "patience": 3
+    # },
+    # {
+    #     "name": "step0_lr1e-4",
+    #     "step": 0,
+    #     "rank": 4, "alpha": 8,
+    #     "lr": 1e-4,
+    #     "batch_size": 8, "n_epochs": 20, "patience": 3
+    # },
 
     # -----------------------------------------------------------------------
-    # STEP 1: RANK SEARCH (con il miglior lr dallo step 0)
+    # STEP 1: RANK SEARCH (lr=5e-4 da step 0)
     # alpha = 2 * rank (scaling = 2.0) come valore di default iniziale.
     #
     # r=4  →  2 × 12 × 2 × (768×4)  ≈  295K trainable params
     # r=8  →  2 × 12 × 2 × (768×8)  ≈  590K trainable params
     # r=16 →  2 × 12 × 2 × (768×16) ≈ 1.18M trainable params
     #
-    # RISULTATI (da compilare dopo aver trovato il best lr):
-    #   rank=4  → Dev PPL: ___  Test PPL: ___
-    #   rank=8  → Dev PPL: ___  Test PPL: ___
-    #   rank=16 → Dev PPL: ___  Test PPL: ___
-    # → Best rank: ___
+    # RISULTATI:
+    #   rank=4  → Dev PPL: 23.33  Test PPL: 21.05
+    #   rank=8  → Dev PPL: 22.00  Test PPL: 19.92
+    #   rank=16 → Dev PPL: 21.18  Test PPL: 19.30
+    # → Best rank: 16 (trend monotono decrescente, guadagno ancora significativo)
     # -----------------------------------------------------------------------
     # {
     #     "name": "step1_rank4",
     #     "step": 1,
     #     "rank": 4, "alpha": 8,
-    #     "lr": 1e-4,        # <-- aggiornare con il best lr da step 0
+    #     "lr": 5e-4,
     #     "batch_size": 8, "n_epochs": 20, "patience": 3
     # },
     # {
     #     "name": "step1_rank8",
     #     "step": 1,
     #     "rank": 8, "alpha": 16,
-    #     "lr": 1e-4,        # <-- aggiornare con il best lr da step 0
+    #     "lr": 5e-4,
     #     "batch_size": 8, "n_epochs": 20, "patience": 3
     # },
     # {
     #     "name": "step1_rank16",
     #     "step": 1,
     #     "rank": 16, "alpha": 32,
-    #     "lr": 1e-4,        # <-- aggiornare con il best lr da step 0
+    #     "lr": 5e-4,
     #     "batch_size": 8, "n_epochs": 20, "patience": 3
     # },
 
     # -----------------------------------------------------------------------
-    # STEP 2: ALPHA SEARCH (con il miglior rank e lr dagli step precedenti)
-    # Testiamo tre valori di alpha per il miglior rank trovato.
+    # STEP 2: ALPHA SEARCH (rank=16, lr=5e-4 da step 1)
+    # Testiamo tre valori di alpha per rank=16.
     #
     # scaling = alpha / rank:
-    #   alpha = rank//2  → scaling = 0.5  (effetto attenuato)
-    #   alpha = rank     → scaling = 1.0  (effetto unitario)
-    #   alpha = 2*rank   → scaling = 2.0  (effetto amplificato)
+    #   alpha = 8   → scaling = 0.5  (effetto attenuato)
+    #   alpha = 16  → scaling = 1.0  (effetto unitario)
+    #   alpha = 32  → scaling = 2.0  (già testato in step1_rank16: Test PPL 19.30)
     #
-    # RISULTATI (da compilare dopo aver trovato il best rank):
-    #   alpha=rank//2 → Dev PPL: ___  Test PPL: ___
-    #   alpha=rank    → Dev PPL: ___  Test PPL: ___
-    #   alpha=2*rank  → Dev PPL: ___  Test PPL: ___
+    # RISULTATI (da compilare dopo l'esecuzione):
+    #   alpha=8  (scaling=0.5) → Dev PPL: ___  Test PPL: ___
+    #   alpha=16 (scaling=1.0) → Dev PPL: ___  Test PPL: ___
+    #   alpha=32 (scaling=2.0) → Dev PPL: 21.18  Test PPL: 19.30  (già noto)
     # → Best alpha: ___
     # -----------------------------------------------------------------------
-    # {
-    #     "name": "step2_alpha_half",
-    #     "step": 2,
-    #     "rank": 8, "alpha": 4,      # alpha = rank//2, scaling = 0.5
-    #     "lr": 1e-4,                  # <-- aggiornare con il best lr
-    #     "batch_size": 8, "n_epochs": 20, "patience": 3
-    # },
-    # {
-    #     "name": "step2_alpha_eq",
-    #     "step": 2,
-    #     "rank": 8, "alpha": 8,      # alpha = rank, scaling = 1.0
-    #     "lr": 1e-4,
-    #     "batch_size": 8, "n_epochs": 20, "patience": 3
-    # },
-    # {
-    #     "name": "step2_alpha_double",
-    #     "step": 2,
-    #     "rank": 8, "alpha": 16,     # alpha = 2*rank, scaling = 2.0
-    #     "lr": 1e-4,
-    #     "batch_size": 8, "n_epochs": 20, "patience": 3
-    # },
+    {
+        "name": "step2_alpha_half",
+        "step": 2,
+        "rank": 16, "alpha": 8,     # alpha = rank//2, scaling = 0.5
+        "lr": 5e-4,
+        "batch_size": 8, "n_epochs": 20, "patience": 3
+    },
+    {
+        "name": "step2_alpha_eq",
+        "step": 2,
+        "rank": 16, "alpha": 16,    # alpha = rank, scaling = 1.0
+        "lr": 5e-4,
+        "batch_size": 8, "n_epochs": 20, "patience": 3
+    },
 
 ]
 
