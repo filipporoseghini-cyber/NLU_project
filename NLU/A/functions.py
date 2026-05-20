@@ -365,8 +365,13 @@ def train_model(model, train_loader, dev_loader, lang,
             best_intent_acc = dev_acc
             best_model      = copy.deepcopy(model).cpu()
             patience_count  = 0
+            print(f"  [ep {epoch:3d}] loss={train_loss:.4f} | "
+                  f"dev F1={dev_f1:.4f}  acc={dev_acc:.4f}  ✓ nuovo best")
         else:
             patience_count += 1
+            print(f"  [ep {epoch:3d}] loss={train_loss:.4f} | "
+                  f"dev F1={dev_f1:.4f}  acc={dev_acc:.4f}  "
+                  f"· patience {patience_count}/{patience}")
             if patience_count >= patience:
                 print(f"  Early stopping dopo {epoch} epoche. Best dev F1: {best_f1:.4f}")
                 break
