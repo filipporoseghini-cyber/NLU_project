@@ -1,0 +1,10 @@
+experiment,model_name,model_type,lr,dropout,slot_f1_mean,slot_f1_std,intent_acc_mean,intent_acc_std
+bert_step0_lr1e-5,bert-base-uncased,bert,1e-05,0.1,0.9508,0.0035,0.975,0.0019
+bert_step0_lr2e-5,bert-base-uncased,bert,2e-05,0.1,0.9537,0.0014,0.9746,0.0019
+bert_step0_lr5e-5,bert-base-uncased,bert,5e-05,0.1,0.9567,0.0021,0.9761,0.0037
+bert_step1_large,bert-large-uncased,bert,5e-05,0.1,0.956,0.0013,0.9742,0.0032
+gpt2_step0_lr1e-5,openai-community/gpt2,gpt2,1e-05,0.1,0.9081,0.0029,0.972,0.0016
+gpt2_step0_lr2e-5,openai-community/gpt2,gpt2,2e-05,0.1,0.9097,0.0051,0.9724,0.0014
+gpt2_step0_lr5e-5,openai-community/gpt2,gpt2,5e-05,0.1,0.9166,0.0021,0.9735,0.0011
+gpt2_step0_lr8e-5,openai-community/gpt2,gpt2,8e-05,0.1,0.9106,0.0067,0.9694,0.0041
+gpt2_step1_medium,openai-community/gpt2-medium,gpt2,8e-05,0.1,0.9146,0.0027,0.9701,0.0028

@@ -110,108 +110,108 @@ if __name__ == '__main__':
     # Raccoglie tutti i risultati per il riepilogo finale
     all_results = []
 
-    # =========================================================================
-    # SEZIONE A — BERT (encoder bidirezionale)
-    # =========================================================================
-    print("\n" + "=" * 70)
-    print("SEZIONE A — BERT fine-tuning")
-    print("=" * 70)
+    # # =========================================================================
+    # # SEZIONE A — BERT (encoder bidirezionale)
+    # # =========================================================================
+    # print("\n" + "=" * 70)
+    # print("SEZIONE A — BERT fine-tuning")
+    # print("=" * 70)
 
-    bert_tokenizer = get_bert_tokenizer("bert-base-uncased")
+    # bert_tokenizer = get_bert_tokenizer("bert-base-uncased")
 
-    # Crea i dataset con tokenizzazione WordPiece e allineamento slot labels
-    bert_train_ds = BERTIntentsAndSlots(train_raw, lang, bert_tokenizer, max_len=128)
-    bert_dev_ds   = BERTIntentsAndSlots(dev_raw,   lang, bert_tokenizer, max_len=128)
-    bert_test_ds  = BERTIntentsAndSlots(test_raw,  lang, bert_tokenizer, max_len=128)
+    # # Crea i dataset con tokenizzazione WordPiece e allineamento slot labels
+    # bert_train_ds = BERTIntentsAndSlots(train_raw, lang, bert_tokenizer, max_len=128)
+    # bert_dev_ds   = BERTIntentsAndSlots(dev_raw,   lang, bert_tokenizer, max_len=128)
+    # bert_test_ds  = BERTIntentsAndSlots(test_raw,  lang, bert_tokenizer, max_len=128)
 
-    bert_train_loader, bert_dev_loader, bert_test_loader = get_dataloaders(
-        bert_train_ds, bert_dev_ds, bert_test_ds,
-        collate_fn=collate_fn_bert,
-        batch_size_train=32,
-        batch_size_eval=64,
-    )
+    # bert_train_loader, bert_dev_loader, bert_test_loader = get_dataloaders(
+    #     bert_train_ds, bert_dev_ds, bert_test_ds,
+    #     collate_fn=collate_fn_bert,
+    #     batch_size_train=32,
+    #     batch_size_eval=64,
+    # )
 
-    # -------------------------------------------------------------------
-    # BERT Step 0 — ricerca learning rate
-    # -------------------------------------------------------------------
-    print("\n" + "-" * 50)
-    print("BERT — Step 0: ricerca learning rate")
-    print("-" * 50)
+    # # -------------------------------------------------------------------
+    # # BERT Step 0 — ricerca learning rate
+    # # -------------------------------------------------------------------
+    # print("\n" + "-" * 50)
+    # print("BERT — Step 0: ricerca learning rate")
+    # print("-" * 50)
 
-    bert_lr_configs = [
-        {"lr": 1e-5, "name": "bert_step0_lr1e-5"},
-        {"lr": 2e-5, "name": "bert_step0_lr2e-5"},
-        {"lr": 5e-5, "name": "bert_step0_lr5e-5"},
-    ]
+    # bert_lr_configs = [
+    #     {"lr": 1e-5, "name": "bert_step0_lr1e-5"},
+    #     {"lr": 2e-5, "name": "bert_step0_lr2e-5"},
+    #     {"lr": 5e-5, "name": "bert_step0_lr5e-5"},
+    # ]
 
-    bert_step0_results = []
-    for cfg in bert_lr_configs:
-        res = run_experiments(
-            bert_train_loader, bert_dev_loader, bert_test_loader,
-            lang,
-            slots_size=slots_size,
-            n_intents=n_intents,
-            lr=cfg["lr"],
-            model_name="bert-base-uncased",
-            model_type="bert",
-            dropout=0.1,
-            n_runs=3,
-            n_epochs=30,
-            patience=3,
-            experiment_name=cfg["name"],
-            device=device,
-        )
-        save_results_to_csv(res)
-        bert_step0_results.append(res)
-        all_results.append(res)
+    # bert_step0_results = []
+    # for cfg in bert_lr_configs:
+    #     res = run_experiments(
+    #         bert_train_loader, bert_dev_loader, bert_test_loader,
+    #         lang,
+    #         slots_size=slots_size,
+    #         n_intents=n_intents,
+    #         lr=cfg["lr"],
+    #         model_name="bert-base-uncased",
+    #         model_type="bert",
+    #         dropout=0.1,
+    #         n_runs=3,
+    #         n_epochs=30,
+    #         patience=3,
+    #         experiment_name=cfg["name"],
+    #         device=device,
+    #     )
+    #     save_results_to_csv(res)
+    #     bert_step0_results.append(res)
+    #     all_results.append(res)
 
-    best_bert_base = max(bert_step0_results, key=lambda x: x['slot_f1_mean'])
-    best_bert_lr   = best_bert_base['lr']
-    print(f"\nMiglior lr per BERT-base: {best_bert_lr} "
-          f"(Slot F1={best_bert_base['slot_f1_mean']:.3f})")
+    # best_bert_base = max(bert_step0_results, key=lambda x: x['slot_f1_mean'])
+    # best_bert_lr   = best_bert_base['lr']
+    # print(f"\nMiglior lr per BERT-base: {best_bert_lr} "
+    #       f"(Slot F1={best_bert_base['slot_f1_mean']:.3f})")
 
-    # -------------------------------------------------------------------
-    # BERT Step 1 — bert-large-uncased
-    # -------------------------------------------------------------------
-    print("\n" + "-" * 50)
-    print("BERT — Step 1: bert-large-uncased")
-    print("-" * 50)
+    # # -------------------------------------------------------------------
+    # # BERT Step 1 — bert-large-uncased
+    # # -------------------------------------------------------------------
+    # print("\n" + "-" * 50)
+    # print("BERT — Step 1: bert-large-uncased")
+    # print("-" * 50)
 
-    # NOTA: bert-large ha hidden_size=1024 → più lento ma potenzialmente migliore
-    bert_large_tokenizer = get_bert_tokenizer("bert-large-uncased")
+    # # NOTA: bert-large ha hidden_size=1024 → più lento ma potenzialmente migliore
+    # bert_large_tokenizer = get_bert_tokenizer("bert-large-uncased")
 
-    bert_large_train_ds = BERTIntentsAndSlots(train_raw, lang, bert_large_tokenizer, max_len=128)
-    bert_large_dev_ds   = BERTIntentsAndSlots(dev_raw,   lang, bert_large_tokenizer, max_len=128)
-    bert_large_test_ds  = BERTIntentsAndSlots(test_raw,  lang, bert_large_tokenizer, max_len=128)
+    # bert_large_train_ds = BERTIntentsAndSlots(train_raw, lang, bert_large_tokenizer, max_len=128)
+    # bert_large_dev_ds   = BERTIntentsAndSlots(dev_raw,   lang, bert_large_tokenizer, max_len=128)
+    # bert_large_test_ds  = BERTIntentsAndSlots(test_raw,  lang, bert_large_tokenizer, max_len=128)
 
-    bert_large_train_loader, bert_large_dev_loader, bert_large_test_loader = get_dataloaders(
-        bert_large_train_ds, bert_large_dev_ds, bert_large_test_ds,
-        collate_fn=collate_fn_bert,
-        batch_size_train=16,  # batch size ridotto per bert-large (più memoria)
-        batch_size_eval=32,
-    )
+    # bert_large_train_loader, bert_large_dev_loader, bert_large_test_loader = get_dataloaders(
+    #     bert_large_train_ds, bert_large_dev_ds, bert_large_test_ds,
+    #     collate_fn=collate_fn_bert,
+    #     batch_size_train=16,  # batch size ridotto per bert-large (più memoria)
+    #     batch_size_eval=32,
+    # )
 
-    res = run_experiments(
-        bert_large_train_loader, bert_large_dev_loader, bert_large_test_loader,
-        lang,
-        slots_size=slots_size,
-        n_intents=n_intents,
-        lr=best_bert_lr,
-        model_name="bert-large-uncased",
-        model_type="bert",
-        dropout=0.1,
-        n_runs=3,
-        n_epochs=30,
-        patience=3,
-        experiment_name="bert_step1_large",
-        device=device,
-    )
-    save_results_to_csv(res)
-    all_results.append(res)
+    # res = run_experiments(
+    #     bert_large_train_loader, bert_large_dev_loader, bert_large_test_loader,
+    #     lang,
+    #     slots_size=slots_size,
+    #     n_intents=n_intents,
+    #     lr=best_bert_lr,
+    #     model_name="bert-large-uncased",
+    #     model_type="bert",
+    #     dropout=0.1,
+    #     n_runs=3,
+    #     n_epochs=30,
+    #     patience=3,
+    #     experiment_name="bert_step1_large",
+    #     device=device,
+    # )
+    # save_results_to_csv(res)
+    # all_results.append(res)
 
-    best_bert = max([best_bert_base, res], key=lambda x: x['slot_f1_mean'])
-    print(f"\nMiglior modello BERT: {best_bert['experiment']} "
-          f"(Slot F1={best_bert['slot_f1_mean']:.3f})")
+    # best_bert = max([best_bert_base, res], key=lambda x: x['slot_f1_mean'])
+    # print(f"\nMiglior modello BERT: {best_bert['experiment']} "
+    #       f"(Slot F1={best_bert['slot_f1_mean']:.3f})")
 
     # =========================================================================
     # SEZIONE B — GPT-2 (decoder causale)
@@ -241,32 +241,53 @@ if __name__ == '__main__':
     print("GPT-2 — Step 0: ricerca learning rate")
     print("-" * 50)
 
-    gpt2_lr_configs = [
-        {"lr": 1e-5, "name": "gpt2_step0_lr1e-5"},
-        {"lr": 2e-5, "name": "gpt2_step0_lr2e-5"},
-        {"lr": 5e-5, "name": "gpt2_step0_lr5e-5"},
-    ]
+    # gpt2_lr_configs = [
+    #     {"lr": 1e-5, "name": "gpt2_step0_lr1e-5"},
+    #     {"lr": 2e-5, "name": "gpt2_step0_lr2e-5"},
+    #     {"lr": 5e-5, "name": "gpt2_step0_lr5e-5"},
+    # ]
 
+    # gpt2_step0_results = []
+    # for cfg in gpt2_lr_configs:
+    #     res = run_experiments(
+    #         gpt2_train_loader, gpt2_dev_loader, gpt2_test_loader,
+    #         lang,
+    #         slots_size=slots_size,
+    #         n_intents=n_intents,
+    #         lr=cfg["lr"],
+    #         model_name="openai-community/gpt2",
+    #         model_type="gpt2",
+    #         dropout=0.1,
+    #         n_runs=3,
+    #         n_epochs=100,
+    #         patience=5,
+    #         experiment_name=cfg["name"],
+    #         device=device,
+    #     )
+    #     save_results_to_csv(res)
+    #     gpt2_step0_results.append(res)
+    #     all_results.append(res)
+
+    # Nuovo esperimento con lr leggermente più alto rispetto al range precedente
     gpt2_step0_results = []
-    for cfg in gpt2_lr_configs:
-        res = run_experiments(
-            gpt2_train_loader, gpt2_dev_loader, gpt2_test_loader,
-            lang,
-            slots_size=slots_size,
-            n_intents=n_intents,
-            lr=cfg["lr"],
-            model_name="openai-community/gpt2",
-            model_type="gpt2",
-            dropout=0.1,
-            n_runs=3,
-            n_epochs=30,
-            patience=3,
-            experiment_name=cfg["name"],
-            device=device,
-        )
-        save_results_to_csv(res)
-        gpt2_step0_results.append(res)
-        all_results.append(res)
+    res = run_experiments(
+        gpt2_train_loader, gpt2_dev_loader, gpt2_test_loader,
+        lang,
+        slots_size=slots_size,
+        n_intents=n_intents,
+        lr=8e-5,
+        model_name="openai-community/gpt2",
+        model_type="gpt2",
+        dropout=0.1,
+        n_runs=3,
+        n_epochs=100,
+        patience=5,
+        experiment_name="gpt2_step0_lr8e-5",
+        device=device,
+    )
+    save_results_to_csv(res)
+    gpt2_step0_results.append(res)
+    all_results.append(res)
 
     best_gpt2_base = max(gpt2_step0_results, key=lambda x: x['slot_f1_mean'])
     best_gpt2_lr   = best_gpt2_base['lr']
@@ -303,8 +324,8 @@ if __name__ == '__main__':
         model_type="gpt2",
         dropout=0.1,
         n_runs=3,
-        n_epochs=30,
-        patience=3,
+        n_epochs=100,
+        patience=5,
         experiment_name="gpt2_step1_medium",
         device=device,
     )
